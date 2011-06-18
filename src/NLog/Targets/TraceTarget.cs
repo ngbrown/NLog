@@ -63,14 +63,14 @@ namespace NLog.Targets
     {
         /// <summary>
         /// Writes the specified logging event to the <see cref="System.Diagnostics.Trace"/> facility.
-        /// If the log level is greater than or equal to <see cref="LogLevel.Error"/> it uses the
+        /// If the log level is greater than or equal to <see cref="LogLevel.Fatal"/> it uses the
         /// <see cref="System.Diagnostics.Trace.Fail(string)"/> method, otherwise it uses
         /// <see cref="System.Diagnostics.Trace.Write(string)" /> method.
         /// </summary>
         /// <param name="logEvent">The logging event.</param>
         protected override void Write(LogEventInfo logEvent)
         {
-            if (logEvent.Level >= LogLevel.Error)
+            if (logEvent.Level >= LogLevel.Fatal)
             {
                 Trace.Fail(this.Layout.Render(logEvent));
             }
