@@ -38,7 +38,7 @@ namespace NLog.LayoutRenderers.Wrappers
     using NLog.Layouts;
 
     /// <summary>
-    /// Decodes text "encrypted" with ROT-13.
+    /// Provides a base for wrapper layout renderers.
     /// </summary>
     /// <remarks>
     /// See <a href="http://en.wikipedia.org/wiki/ROT13">http://en.wikipedia.org/wiki/ROT13</a>.
