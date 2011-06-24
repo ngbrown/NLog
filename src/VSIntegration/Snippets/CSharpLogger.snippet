@@ -20,9 +20,13 @@
           <ID>LogManager</ID>
           <Function>SimpleTypeName(NLog.LogManager)</Function>
         </Literal>
+        <Literal Editable="false">
+          <ID>ClassName</ID>
+          <Function>ClassName()</Function>
+        </Literal>
       </Declarations>
       <Code Language="csharp">
-        <![CDATA[private static $Logger$ logger = $LogManager$.GetCurrentClassLogger();]]>
+        <![CDATA[private static $Logger$ logger = $LogManager$.GetLogger<$ClassName$>();]]>
       </Code>
     </Snippet>
   </CodeSnippet>

@@ -193,6 +193,27 @@ namespace NLog
         }
 
         /// <summary>
+        /// Gets the logger named after the class name.
+        /// </summary>
+        /// <typeparam name="T">Type of the current class</typeparam>
+        /// <returns>The logger reference. Multiple calls to <c>GetLogger</c> with the same argument aren't guaranteed to return the same logger reference.</returns>
+        public static Logger GetLogger<T>()
+        {
+            return globalFactory.GetLogger(typeof(T).FullName);
+        }
+
+        /// <summary>
+        /// Gets the logger named after the class name.
+        /// </summary>
+        /// <typeparam name="T">Type of the current class</typeparam>
+        /// <param name="loggerType">The logger class. The class must inherit from <see cref="Logger" />.</param>
+        /// <returns>The logger reference. Multiple calls to <c>GetLogger</c> with the same argument aren't guaranteed to return the same logger reference.</returns>
+        public static Logger GetLogger<T>(Type loggerType)
+        {
+            return globalFactory.GetLogger(typeof(T).FullName, loggerType);
+        }
+
+        /// <summary>
         /// Loops through all loggers previously returned by GetLogger.
         /// and recalculates their target and filter list. Useful after modifying the configuration programmatically
         /// to ensure that all loggers have been properly configured.
