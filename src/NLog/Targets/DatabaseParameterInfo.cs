@@ -72,7 +72,7 @@ namespace NLog.Targets
         public string Name { get; set; }
 
         /// <summary>
-        /// Gets or sets the layout that should be use to calcuate the value for the parameter.
+        /// Gets or sets the layout that should be use to calculate the value for the parameter.
         /// </summary>
         /// <docgen category='Parameter Options' order='10' />
         [RequiredParameter]
@@ -98,6 +98,13 @@ namespace NLog.Targets
         /// <docgen category='Parameter Options' order='10' />
         [DefaultValue(0)]
         public byte Scale { get; set; }
+
+        /// <summary>
+        /// Gets or sets the database parameter 
+        /// </summary>
+        /// <docgen category='Parameter Options' order='10' />
+        [DefaultValue(false)]
+        public bool Nullable { get; set; }
     }
 }
 

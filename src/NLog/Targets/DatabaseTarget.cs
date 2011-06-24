@@ -476,7 +476,15 @@ namespace NLog.Targets
 
                 string stringValue = par.Layout.Render(logEvent);
 
-                p.Value = stringValue;
+                if (par.Nullable && string.IsNullOrEmpty(stringValue))
+                {
+                    p.Value = DBNull.Value;
+                }
+                else
+                {
+                    p.Value = stringValue;
+                }
+
                 command.Parameters.Add(p);
 
                 InternalLogger.Trace("  Parameter: '{0}' = '{1}' ({2})", p.ParameterName, p.Value, p.DbType);
