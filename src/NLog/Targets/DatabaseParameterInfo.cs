@@ -100,7 +100,7 @@ namespace NLog.Targets
         public byte Scale { get; set; }
 
         /// <summary>
-        /// Gets or sets the database parameter 
+        /// Gets or sets a value indicating whether the database parameter is nullable
         /// </summary>
         /// <docgen category='Parameter Options' order='10' />
         [DefaultValue(false)]
