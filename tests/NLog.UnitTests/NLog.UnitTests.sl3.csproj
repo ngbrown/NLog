@@ -131,6 +131,7 @@
     <Compile Include="LayoutRenderers\TimeTests.cs" />
     <Compile Include="LayoutRenderers\Wrappers\CachedTests.cs" />
     <Compile Include="LayoutRenderers\Wrappers\FileSystemNormalizeTests.cs" />
+    <Compile Include="LayoutRenderers\Wrappers\JsonEncodeTests.cs" />
     <Compile Include="LayoutRenderers\Wrappers\OnExceptionTests.cs" />
     <Compile Include="LayoutRenderers\Wrappers\TrimWhiteSpaceTests.cs" />
     <Compile Include="LayoutRenderers\Wrappers\WhenEmptyTests.cs" />
@@ -139,6 +140,7 @@
     <Compile Include="Layouts\CsvLayoutTests.cs" />
     <Compile Include="Layouts\SimpleLayoutOutputTests.cs" />
     <Compile Include="Layouts\SimpleLayoutParserTests.cs" />
+    <Compile Include="Layouts\ThreadAgnosticTests.cs" />
     <Compile Include="LoggerTests.cs" />
     <Compile Include="LogLevelTests.cs" />
     <Compile Include="LogManagerTests.cs" />

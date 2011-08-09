@@ -41,39 +41,39 @@ namespace NLog.LayoutRenderers.Wrappers
     using NLog.Config;
 
     /// <summary>
-    /// Converts the result of another layout output to be XML-compliant.
+    /// Escapes output of another layout using JSON rules.
     /// </summary>
-    [LayoutRenderer("xml-encode")]
-    [AmbientProperty("XmlEncode")]
+    [LayoutRenderer("json-encode")]
+    [AmbientProperty("JsonEncode")]
     [ThreadAgnostic]
-    public sealed class XmlEncodeLayoutRendererWrapper : WrapperLayoutRendererBase
+    public sealed class JsonEncodeLayoutRendererWrapper : WrapperLayoutRendererBase
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="XmlEncodeLayoutRendererWrapper" /> class.
+        /// Initializes a new instance of the <see cref="JsonEncodeLayoutRendererWrapper" /> class.
         /// </summary>
-        public XmlEncodeLayoutRendererWrapper()
+        public JsonEncodeLayoutRendererWrapper()
         {
-            this.XmlEncode = true;
+            this.JsonEncode = true;
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether to apply XML encoding.
+        /// Gets or sets a value indicating whether to apply JSON encoding.
         /// </summary>
         /// <docgen category="Transformation Options" order="10"/>
         [DefaultValue(true)]
-        public bool XmlEncode { get; set; }
+        public bool JsonEncode { get; set; }
 
         /// <summary>
         /// Post-processes the rendered message. 
         /// </summary>
         /// <param name="text">The text to be post-processed.</param>
-        /// <returns>Padded and trimmed string.</returns>
+        /// <returns>JSON-encoded string.</returns>
         protected override string Transform(string text)
         {
-            return this.XmlEncode ? DoXmlEscape(text) : text;
+            return this.JsonEncode ? DoJsonEscape(text) : text;
         }
 
-        private static string DoXmlEscape(string text)
+        private static string DoJsonEscape(string text)
         {
             var sb = new StringBuilder(text.Length);
 
@@ -81,33 +81,59 @@ namespace NLog.LayoutRenderers.Wrappers
             {
                 switch (text[i])
                 {
-                    case '<':
-                        sb.Append("&lt;");
-                        break;
-
-                    case '>':
-                        sb.Append("&gt;");
-                        break;
-
-                    case '&':
-                        sb.Append("&amp;");
-                        break;
-
-                    case '\'':
-                        sb.Append("&apos;");
-                        break;
-
                     case '"':
-                        sb.Append("&quot;");
+                        sb.Append("\\\"");
+                        break;
+
+                    case '\\':
+                        sb.Append("\\\\");
+                        break;
+
+                    case '/':
+                        sb.Append("\\/");
+                        break;
+
+                    case '\b':
+                        sb.Append("\\b");
+                        break;
+
+                    case '\r':
+                        sb.Append("\\r");
+                        break;
+
+                    case '\n':
+                        sb.Append("\\n");
+                        break;
+
+                    case '\f':
+                        sb.Append("\\f");
+                        break;
+
+                    case '\t':
+                        sb.Append("\\t");
                         break;
 
                     default:
-                        sb.Append(text[i]);
+                        if (NeedsEscaping(text[i]))
+                        {
+                            sb.Append("\\u");
+                            sb.Append(Convert.ToString((int)text[i], 16).PadLeft(4, '0'));
+                        }
+                        else
+                        {
+                            sb.Append(text[i]);
+                        }
+
                         break;
                 }
             }
 
             return sb.ToString();
+        }
+
+        private static bool NeedsEscaping(char ch)
+        {
+            return ch < 32 || ch > 127;
         }
     }
 }

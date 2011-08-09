@@ -3,10 +3,15 @@
 
   <PropertyGroup>
     <MajorMinorVersion>2.0</MajorMinorVersion>
-    <BuildLabel Condition=" '$(BuildLabel)'=='' ">PrivateBuild</BuildLabel>
-    <BuildLabel Condition=" '$(CCNetLabel)'!='' ">$(CCNetLabel)</BuildLabel>
-    <BuildVersion>2.0.0.0</BuildVersion>
-    <BuildProductName>NLog v$(MajorMinorVersion) ($(BuildLabel))</BuildProductName>
+    <BuildLabel Condition=" '$(BuildLabelOverride)' == '' "> (PrivateBuild)</BuildLabel>
+    <BuildLabel Condition=" '$(BuildLabelOverride)' == 'NONE' "></BuildLabel>
+    <BuildLabel Condition=" '$(BuildLabelOverride)' != '' and '$(BuildLabelOverride)' != 'NONE' "> ($(BuildLabelOverride))</BuildLabel>
+    <BuildLabelDash Condition=" '$(BuildLabelOverride)' == '' ">-PrivateBuild</BuildLabelDash>
+    <BuildLabelDash Condition=" '$(BuildLabelOverride)' == 'NONE' "></BuildLabelDash>
+    <BuildLabelDash Condition=" '$(BuildLabelOverride)' != '' and '$(BuildLabelOverride)' != 'NONE' ">-$(BuildLabelOverride)</BuildLabelDash>
+    <BuildVersion Condition=" '$(BuildVersion)' == '' " >2.0.0.0</BuildVersion>
+    <BuildVersion Condition=" '$(CCNetLabel)'!='' ">$(CCNetLabel)</BuildVersion>
+    <BuildProductName>NLog v$(BuildVersion)$(BuildLabel)</BuildProductName>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -26,9 +31,12 @@
     <BuildAllFrameworks Condition="'$(BuildNetFX40)' == 'true'">false</BuildAllFrameworks>
     <BuildAllFrameworks Condition="'$(BuildNetCF20)' == 'true'">false</BuildAllFrameworks>
     <BuildAllFrameworks Condition="'$(BuildNetCF35)' == 'true'">false</BuildAllFrameworks>
-    <ToolsDir>$(MSBuildProjectDirectory)\..\build\bin\Tools</ToolsDir>
-    <SLTestRunner>$(BaseOutputDirectory)\bin\Tools\SilverlightConsoleRunner.exe</SLTestRunner>
-    <DeployNetCF>..\tools\DeployNetCF.exe</DeployNetCF>
+    <IgnoreBuildFailures>false</IgnoreBuildFailures>
+    <IgnoreBuildFailures Condition=" '$(BuildAllFrameworks)'=='true' ">true</IgnoreBuildFailures>
+    <IgnoreBuildFailures Condition=" '$(IsNightlyBuild)'=='true' ">false</IgnoreBuildFailures>
+    <ToolsDir>$(BaseOutputDirectory)\bin\Tools</ToolsDir>
+    <SLTestRunner>$(ToolsDir)\SilverlightConsoleRunner.exe</SLTestRunner>
+    <DeployNetCF>$(ToolsDir)\DeployNetCF.exe</DeployNetCF>
     <DumpApiXml>$(ToolsDir)\DumpApiXml.exe</DumpApiXml>
     <MergeApiXml>$(ToolsDir)\MergeApiXml.exe</MergeApiXml>
     <MakeNLogXSD>$(ToolsDir)\MakeNLogXSD.exe</MakeNLogXSD>
@@ -44,9 +52,10 @@
     <ConfigurationSuffix Condition="'$(Configuration)' == 'Debug'">-debug</ConfigurationSuffix>
     <WebsiteDir Condition="'$(WebsiteDir)' == ''">$(BaseOutputDirectory)\bin\$(Configuration)\Website</WebsiteDir>
     <LastTestRunSummary>$(BaseOutputDirectory)\bin\LastTestRunSummary.cmd</LastTestRunSummary>
-    <BuildInfoFile>$(BaseOutputDirectory)\obj\BuildInfo.cs</BuildInfoFile>
-    <NuGetTool>c:\apps\nuget\NuGet.exe</NuGetTool>
+    <BuildInfoFile>$(BaseOutputDirectory)\bin\BuildInfo.cs</BuildInfoFile>
+    <NuGetTool>NuGet.exe</NuGetTool>
     <NuGetBuildPath>$(BaseOutputDirectory)\obj\$(Configuration)\NuGet</NuGetBuildPath>
+    <NuGetProperties>BuildVersion=$(BuildVersion)</NuGetProperties>
   </PropertyGroup>
 
   <!-- detect location of various SDKs and tools-->
@@ -68,7 +77,7 @@
     <MSTest9>$(VS90COMNTOOLS)..\IDE\MSTest.exe</MSTest9>
     <MSTest10>$(VS100COMNTOOLS)..\IDE\MSTest.exe</MSTest10>
 
-    <StyleCopTargetsFile>$(MSBuildExtensionsPath)\Microsoft\StyleCop\v4.4\Microsoft.StyleCop.Targets</StyleCopTargetsFile>
+    <StyleCopTargetsFile>$(MSBuildExtensionsPath)\StyleCop\v4.5\StyleCop.Targets</StyleCopTargetsFile>
     <StyleCopProperties Condition="'$(DisableStyleCop)' == 'false' and Exists('$(StyleCopTargetsFile)')">StyleCopTargetsFile=$(StyleCopTargetsFile)</StyleCopProperties>
   </PropertyGroup>
 
@@ -151,7 +160,7 @@
     <TargetFramework Include="Silverlight for Windows Phone 7.1" Condition="'$(BuildWP71)'=='true'">
         <ProjectFileSuffix>.wp71</ProjectFileSuffix>
         <DocReferences>$(DocReferencesWP71)</DocReferences>
-        <NuGetDir>sl4-wp</NuGetDir>
+        <NuGetDir>sl4-windowsphone71</NuGetDir>
     </TargetFramework>
     <TargetFramework Include=".NET Compact Framework 2.0" Condition="'$(BuildNetCF20)'=='true'">
         <ProjectFileSuffix>.netcf20</ProjectFileSuffix>
@@ -194,10 +203,10 @@
 
   <Target Name="NightlyBuild">
      <PropertyGroup>
-       <CommonProperties>BuildLabel=$(BuildLabel);BuildVersion=$(BuildVersion)</CommonProperties>
+       <CommonProperties>BuildLabel=$(BuildLabel);BuildVersion=$(BuildVersion);IsNightlyBuild=true</CommonProperties>
      </PropertyGroup>
-     <MSBuild Projects="$(MSBuildProjectFile)" Targets="DeepClean;Clean;Build;DumpApi;XSD;Documentation;Archive;Installer;BuildTests;Web" Properties="Configuration=Release;$(CommonProperties)" />
-     <MSBuild Projects="$(MSBuildProjectFile)" Targets="Clean;Build;DumpApi;XSD;Documentation;Archive;Installer;BuildTests" Properties="Configuration=Debug;$(CommonProperties)" />
+     <MSBuild Projects="$(MSBuildProjectFile)" Targets="DeepClean;Clean;Build;DumpApi;XSD;Documentation;Archive;Installer;NuGetPackage;BuildTests;Web" Properties="Configuration=Release;$(CommonProperties)" />
+     <MSBuild Projects="$(MSBuildProjectFile)" Targets="Clean;Build;DumpApi;XSD;Documentation;Archive;Installer;NuGetPackage;BuildTests;RunNightlyTests" Properties="Configuration=Debug;$(CommonProperties)" />
      <CallTarget Targets="SourceArchive" />
   </Target>
 
@@ -212,7 +221,7 @@
 </BuildInfoFileContent>
     </PropertyGroup>
 
-    <MakeDir Directories="$(BaseOutputDirectory)\obj" />
+    <MakeDir Directories="$(BaseOutputDirectory)\bin" />
 
     <ReadLinesFromFile File="$(BuildInfoFile)" Condition="Exists('$(BuildInfoFile)')">
         <Output TaskParameter="Lines" ItemName="CurrentBuildInfoFileContent" />
@@ -226,20 +235,20 @@
              Targets="Build" 
              Properties="$(StyleCopProperties);%(TargetFramework.Properties);BaseOutputDirectory=$(BaseOutputDirectory);BuildInfoFile=$(BuildInfoFile)" 
              ToolsVersion="%(TargetFramework.ToolsVersion)" 
-             ContinueOnError="$(BuildAllFrameworks)" 
+             ContinueOnError="$(IgnoreBuildFailures)" 
              StopOnFirstFailure="false" />
     <MSBuild Projects="NLog.Extended\NLog.Extended%(TargetFramework.ProjectFileSuffix).csproj" 
              Targets="Build" 
              Properties="$(StyleCopProperties);%(TargetFramework.Properties);BaseOutputDirectory=$(BaseOutputDirectory);BuildInfoFile=$(BuildInfoFile)" 
              ToolsVersion="%(TargetFramework.ToolsVersion)" 
-             ContinueOnError="$(BuildAllFrameworks)" 
+             ContinueOnError="$(IgnoreBuildFailures)" 
              StopOnFirstFailure="false"
              Condition="Exists('NLog.Extended\NLog.Extended%(TargetFramework.ProjectFileSuffix).csproj')" />
     <MSBuild Projects="InstallNLogConfig\InstallNLogConfig%(TargetFramework.ProjectFileSuffix).csproj" 
              Targets="Build" 
              Properties="$(StyleCopProperties);%(TargetFramework.Properties);BaseOutputDirectory=$(BaseOutputDirectory);BuildInfoFile=$(BuildInfoFile)" 
              ToolsVersion="%(TargetFramework.ToolsVersion)" 
-             ContinueOnError="$(BuildAllFrameworks)" 
+             ContinueOnError="$(IgnoreBuildFailures)" 
              StopOnFirstFailure="false"
              Condition="Exists('InstallNLogConfig\InstallNLogConfig%(TargetFramework.ProjectFileSuffix).csproj')" />
 
@@ -257,16 +266,18 @@
     <MSBuild Projects="..\tests\NLogC.UnitTests\NLogC.UnitTests.netfx40.vcxproj" Properties="BaseOutputDirectory=$(BaseOutputDirectory);Configuration=$(Configuration);Platform=x64" />
   </Target>
 
-  <Target Name="BuildTests" DependsOnTargets="Build">
+  <Target Name="BuildTests">
+    <Copy DestinationFolder="$(ToolsDir)" SourceFiles="..\tools\DeployNetCF.exe" />
+    <Copy DestinationFolder="$(BaseOutputDirectory)\bin" SourceFiles="$(MSBuildProjectFile);..\tests\CreateTestUsers.cmd;..\tests\DeleteTestUsers.cmd" />
     <MSBuild Projects="..\tests\NLog.UnitTests\NLog.UnitTests%(TargetFramework.ProjectFileSuffix).csproj" 
              Targets="Build" 
              Properties="%(TargetFramework.Properties);BaseOutputDirectory=$(BaseOutputDirectory)" 
-             ContinueOnError="$(BuildAllFrameworks)" 
+             ContinueOnError="$(IgnoreBuildFailures)" 
              StopOnFirstFailure="false" />
     <MSBuild Projects="..\tests\NLog.BinaryCompatTests\NLog.BinaryCompatTests%(TargetFramework.ProjectFileSuffix).csproj" 
              Targets="Build" 
              Properties="%(TargetFramework.Properties);BaseOutputDirectory=$(BaseOutputDirectory)" 
-             ContinueOnError="$(BuildAllFrameworks)" 
+             ContinueOnError="$(IgnoreBuildFailures)" 
              Condition="Exists('..\tests\NLog.BinaryCompatTests\NLog.BinaryCompatTests%(TargetFramework.ProjectFileSuffix).csproj')" 
              StopOnFirstFailure="false" />
     <CallTarget Targets="BuildTestResultSummaryTool" />
@@ -294,7 +305,7 @@
   </Target>
 
   <Target Name="RunTests">
-    <Exec Command="..\tests\CreateTestUsers.cmd" IgnoreExitCode="true" />
+    <Exec Command="$(BaseOutputDirectory)\bin\CreateTestUsers.cmd" IgnoreExitCode="true" />
     <CallTarget Targets="DeleteTrxFiles" />
     <CallTarget Targets="PrepareTestResultSummary" />
     <!-- <CallTarget Targets="Mono2Test" Condition="'$(BuildMono2)'=='true'"/> -->
@@ -309,7 +320,17 @@
     <CallTarget Targets="WP7Test" Condition="'$(BuildWP7)'=='true'"/>
     <CallTarget Targets="WP71Test" Condition="'$(BuildWP71)'=='true'"/>
     <CallTarget Targets="RunComApiTests" />
-    <Exec Command="..\tests\DeleteTestUsers.cmd" IgnoreExitCode="true" />
+    <Exec Command="$(BaseOutputDirectory)\bin\DeleteTestUsers.cmd" IgnoreExitCode="true" />
+  </Target>
+
+  <Target Name="RunNightlyTests">
+    <Exec Command="$(BaseOutputDirectory)\bin\CreateTestUsers.cmd" IgnoreExitCode="true" />
+    <CallTarget Targets="DeleteTrxFiles" />
+    <Exec Command='NLogC.UnitTests.exe' WorkingDirectory="$(BaseOutputDirectory)\bin\$(Configuration)\.NET Framework 4.0\NLogC\x86" />
+    <Exec Command='"$(MSTest10)" /nologo /testcontainer:NLog.UnitTests.dll /resultsfile:TestResults.trx'
+          WorkingDirectory="$(BaseOutputDirectory)\bin\$(Configuration)\.NET Framework 4.0" 
+          Condition="Exists('$(MSTest10)')" />
+    <Exec Command="$(BaseOutputDirectory)\bin\DeleteTestUsers.cmd" IgnoreExitCode="true" />
   </Target>
 
   <Target Name="RunComApiTests">
@@ -341,7 +362,6 @@
   </Target>
 
   <Target Name="NetCf20Test" DependsOnTargets="DeployNetCf20ToEmulator">
-    <Copy SourceFiles="SmartDeviceTestRun.testrunConfig" DestinationFolder="$(BaseOutputDirectory)\bin\$(Configuration)\.NET Compact Framework 2.0" />
     <Exec Command='"$(MSTest9)" /nologo /runconfig:SmartDeviceTestRun.testrunConfig /testcontainer:NLog.UnitTests.dll /resultsfile:TestResults.trx'
           WorkingDirectory="$(BaseOutputDirectory)\bin\$(Configuration)\.NET Compact Framework 2.0"
           Condition="Exists('$(MSTest9)')" IgnoreExitCode="true" />
@@ -349,7 +369,6 @@
   </Target>
 
   <Target Name="NetCf35Test" DependsOnTargets="DeployNetCf35ToEmulator">
-    <Copy SourceFiles="SmartDeviceTestRun.testrunConfig" DestinationFolder="$(BaseOutputDirectory)\bin\$(Configuration)\.NET Compact Framework 3.5" />
     <Exec Command='"$(MSTest9)" /nologo /runconfig:SmartDeviceTestRun.testrunConfig /testcontainer:NLog.UnitTests.dll /resultsfile:TestResults.trx'
           WorkingDirectory="$(BaseOutputDirectory)\bin\$(Configuration)\.NET Compact Framework 3.5"
           Condition="Exists('$(MSTest9)')" IgnoreExitCode="true" />
@@ -375,12 +394,14 @@
     <Exec Command="TaskKill /f /im XDE.exe 2&gt; nul" IgnoreExitCode="true" />
     <Exec Command='"$(SLTestRunner)" NLog.UnitTests.xap WP7 -guid 3cf9fab9-588c-49c8-8a45-ef071442304f -icon ApplicationIcon.png'
           WorkingDirectory="$(BaseOutputDirectory)\bin\$(Configuration)\Silverlight for Windows Phone 7" IgnoreExitCode="true" />
+    <Exec Command="TaskKill /f /im XDE.exe 2&gt; nul" IgnoreExitCode="true" />
   </Target>
 
   <Target Name="WP71Test">
     <Exec Command="TaskKill /f /im XDE.exe 2&gt; nul" IgnoreExitCode="true" />
     <Exec Command='"$(SLTestRunner)" NLog.UnitTests.xap WP71 -guid 3cf9fab9-588c-49c8-8a45-ef071442304f -icon ApplicationIcon.png'
           WorkingDirectory="$(BaseOutputDirectory)\bin\$(Configuration)\Silverlight for Windows Phone 7.1" IgnoreExitCode="true" />
+    <Exec Command="TaskKill /f /im XDE.exe 2&gt; nul" IgnoreExitCode="true" />
   </Target>
 
   <Target Name="CheckinSuite">
@@ -438,69 +459,115 @@
     <MSBuild Projects="$(MSBuildProjectFile)" Targets="PostProcessSingleDoc" Properties="DocBuildDir=$(BaseOutputDirectory)\bin\$(Configuration)\Documentation" />
   </Target>
 
-  <Target Name="NuGetPackage" DependsOnTargets="NuGetBasePackage;NuGetExtendedPackage;NuGetConfigPackage">
+  <Target Name="NuGetPackage" DependsOnTargets="NuGetBasePackage;NuGetExtendedPackage;NuGetConfigPackage;NuGetSchemaPackage">
   </Target>
 
   <Target Name="NuGetBasePackage">
     <ItemGroup>
-	   <NuGetFiles Include="NuGet/NLog/**" />
-	</ItemGroup>
+      <NuGetFiles Include="NuGet/NLog/**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <NuGetSourceFiles Include="NLog/**/*.cs" />
+    </ItemGroup>
 	
-	<!-- prepare static files -->
-	<RemoveDir Directories="$(NuGetBuildPath)\NLog" />
-	<Copy SourceFiles="@(NuGetFiles)" DestinationFolder="$(NuGetBuildPath)\NLog\%(RecursiveDir)" />
+    <!-- prepare static files -->
+    <RemoveDir Directories="$(NuGetBuildPath)\NLog" />
+    <Copy SourceFiles="@(NuGetFiles)" DestinationFolder="$(NuGetBuildPath)\NLog\%(RecursiveDir)" />
 	
-	<!-- copy binaries -->
+    <!-- copy binaries -->
     <MakeDir Directories="$(NuGetBuildPath)\NLog\lib\%(TargetFramework.NuGetDir)" />
     <Copy DestinationFolder="$(NuGetBuildPath)\NLog\lib\%(TargetFramework.NuGetDir)" SourceFiles="$(BaseOutputDirectory)\bin\$(Configuration)\%(TargetFramework.Identity)\NLog.dll" Condition=" '%(TargetFramework.NuGetDir)' != '' "  />
     <Copy DestinationFolder="$(NuGetBuildPath)\NLog\lib\%(TargetFramework.NuGetDir)" SourceFiles="$(BaseOutputDirectory)\bin\$(Configuration)\%(TargetFramework.Identity)\NLog.pdb"  Condition=" '%(TargetFramework.NuGetDir)' != '' " />
+    <Copy DestinationFolder="$(NuGetBuildPath)\NLog\lib\%(TargetFramework.NuGetDir)" SourceFiles="$(BaseOutputDirectory)\bin\$(Configuration)\%(TargetFramework.Identity)\NLog.xml"  Condition=" '%(TargetFramework.NuGetDir)' != '' " />
+
+    <!-- copy sources -->
+    <Copy SourceFiles="@(NuGetSourceFiles)" DestinationFolder="$(NuGetBuildPath)\NLog\src\src\NLog\%(RecursiveDir)" />
+    <Copy SourceFiles="$(BuildInfoFile)" DestinationFolder="$(NuGetBuildPath)\NLog\src\build\bin" />
+
+    <TokenReplace Path="$(NuGetBuildPath)\NLog\NLog.nuspec" Token="$BuildVersion$" Replacement="$(BuildVersion)" />
     
-	<!-- package -->
-	<MakeDir Directories="$(NuGetOutputPath)" />
+    <!-- package -->
+    <MakeDir Directories="$(NuGetOutputPath)" />
     <Exec Command='"$(NuGetTool)" pack NLog.nuspec -Symbols -OutputDirectory "$(NuGetOutputPath)"' WorkingDirectory="$(NuGetBuildPath)\NLog" />
   </Target>
 
   <Target Name="NuGetExtendedPackage">
     <ItemGroup>
-	   <NuGetExtendedFiles Include="NuGet/NLog.Extended/**" />
-	</ItemGroup>
+      <NuGetExtendedFiles Include="NuGet/NLog.Extended/**" />
+    </ItemGroup>
+    <ItemGroup>
+      <NuGetExtendedSourceFiles Include="NLog.Extended/**/*.cs" />
+    </ItemGroup>
 	
-	<!-- prepare static files -->
-	<RemoveDir Directories="$(NuGetBuildPath)\NLog.Extended" />
-	<Copy SourceFiles="@(NuGetExtendedFiles)" DestinationFolder="$(NuGetBuildPath)\NLog.Extended\%(RecursiveDir)" />
+    <!-- prepare static files -->
+    <RemoveDir Directories="$(NuGetBuildPath)\NLog.Extended" />
+    <Copy SourceFiles="@(NuGetExtendedFiles)" DestinationFolder="$(NuGetBuildPath)\NLog.Extended\%(RecursiveDir)" />
 	
-	<!-- copy binaries -->
-	<MakeDir Directories="$(NuGetBuildPath)\NLog.Extended\lib\%(TargetFramework.NuGetDir)-full" 
+    <!-- copy binaries -->
+    <MakeDir Directories="$(NuGetBuildPath)\NLog.Extended\lib\%(TargetFramework.NuGetDir)-full" 
           Condition=" '%(TargetFramework.NuGetDir)' != '' and Exists('$(BaseOutputDirectory)\bin\$(Configuration)\%(TargetFramework.Identity)\NLog.Extended.pdb')" />
-	<Copy DestinationFolder="$(NuGetBuildPath)\NLog.Extended\lib\%(TargetFramework.NuGetDir)-full" 
+    <Copy DestinationFolder="$(NuGetBuildPath)\NLog.Extended\lib\%(TargetFramework.NuGetDir)-full" 
           SourceFiles="$(BaseOutputDirectory)\bin\$(Configuration)\%(TargetFramework.Identity)\NLog.Extended.dll" 
           Condition=" '%(TargetFramework.NuGetDir)' != '' and Exists('$(BaseOutputDirectory)\bin\$(Configuration)\%(TargetFramework.Identity)\NLog.Extended.dll')" />
     <Copy DestinationFolder="$(NuGetBuildPath)\NLog.Extended\lib\%(TargetFramework.NuGetDir)-full" 
           SourceFiles="$(BaseOutputDirectory)\bin\$(Configuration)\%(TargetFramework.Identity)\NLog.Extended.pdb"
           Condition=" '%(TargetFramework.NuGetDir)' != '' and Exists('$(BaseOutputDirectory)\bin\$(Configuration)\%(TargetFramework.Identity)\NLog.Extended.pdb')" />
+    <Copy DestinationFolder="$(NuGetBuildPath)\NLog.Extended\lib\%(TargetFramework.NuGetDir)-full" 
+          SourceFiles="$(BaseOutputDirectory)\bin\$(Configuration)\%(TargetFramework.Identity)\NLog.Extended.xml"
+          Condition=" '%(TargetFramework.NuGetDir)' != '' and Exists('$(BaseOutputDirectory)\bin\$(Configuration)\%(TargetFramework.Identity)\NLog.Extended.xml')" />
 		  
-	<!-- package -->	  
+    <!-- copy sources -->
+    <Copy SourceFiles="@(NuGetExtendedSourceFiles)" DestinationFolder="$(NuGetBuildPath)\NLog.Extended\src\src\NLog.Extended\%(RecursiveDir)" />
+    <Copy SourceFiles="$(BuildInfoFile)" DestinationFolder="$(NuGetBuildPath)\NLog.Extended\src\build\bin" />
+
+    <TokenReplace Path="$(NuGetBuildPath)\NLog.Extended\NLog.Extended.nuspec" Token="$BuildVersion$" Replacement="$(BuildVersion)" />
+
+    <!-- package -->	  
     <MakeDir Directories="$(NuGetOutputPath)" />
     <Exec Command='"$(NuGetTool)" pack NLog.Extended.nuspec -Symbols -OutputDirectory "$(NuGetOutputPath)"' WorkingDirectory="$(NuGetBuildPath)\NLog.Extended" />
   </Target>
 
   <Target Name="NuGetConfigPackage">
     <ItemGroup>
-	   <NuGetConfigFiles Include="NuGet/NLog.Config/**" />
-	</ItemGroup>
+      <NuGetConfigFiles Include="NuGet/NLog.Config/**" />
+    </ItemGroup>
 	
-	<!-- prepare static files -->
-	<RemoveDir Directories="$(NuGetBuildPath)\NLog.Config" />
-	<Copy SourceFiles="@(NuGetConfigFiles)" DestinationFolder="$(NuGetBuildPath)\NLog.Config\%(RecursiveDir)" />
+    <!-- prepare static files -->
+    <RemoveDir Directories="$(NuGetBuildPath)\NLog.Config" />
+    <Copy SourceFiles="@(NuGetConfigFiles)" DestinationFolder="$(NuGetBuildPath)\NLog.Config\%(RecursiveDir)" />
+    <Copy SourceFiles="$(BaseOutputDirectory)\bin\$(Configuration)\NLog.xsd"
+          DestinationFolder="$(NuGetBuildPath)\NLog.Config\content" />
 	
-	<!-- package -->	  
+    <TokenReplace Path="$(NuGetBuildPath)\NLog.Config\NLog.Config.nuspec" Token="$BuildVersion$" Replacement="$(BuildVersion)" />
+
+    <!-- package -->	  
     <MakeDir Directories="$(NuGetOutputPath)" />
     <Exec Command='"$(NuGetTool)" pack NLog.Config.nuspec -OutputDirectory "$(NuGetOutputPath)"' WorkingDirectory="$(NuGetBuildPath)\NLog.Config" />
   </Target>
 
+  <Target Name="NuGetSchemaPackage">
+    <ItemGroup>
+      <NuGetSchemaFiles Include="NuGet/NLog.Schema/**" />
+    </ItemGroup>
+	
+    <!-- prepare static files -->
+    <RemoveDir Directories="$(NuGetBuildPath)\NLog.Schema" />
+    <Copy SourceFiles="@(NuGetSchemaFiles)" DestinationFolder="$(NuGetBuildPath)\NLog.Schema\%(RecursiveDir)" />
+    <Copy SourceFiles="$(BaseOutputDirectory)\bin\$(Configuration)\NLog.xsd"
+          DestinationFolder="$(NuGetBuildPath)\NLog.Schema\content" />
+	
+    <TokenReplace Path="$(NuGetBuildPath)\NLog.Schema\NLog.Schema.nuspec" Token="$BuildVersion$" Replacement="$(BuildVersion)" />
+
+    <!-- package -->	  
+    <MakeDir Directories="$(NuGetOutputPath)" />
+    <Exec Command='"$(NuGetTool)" pack NLog.Schema.nuspec -OutputDirectory "$(NuGetOutputPath)" -Properties $(NuGetProperties)' WorkingDirectory="$(NuGetBuildPath)\NLog.Schema" />
+  </Target>                                                                                       
+
+
   <Target Name="Installer">
      <PropertyGroup>
-       <CommonInstallerProperties>Configuration=$(Configuration);BuildLabel=$(BuildLabel);BuildVersion=$(BuildVersion)</CommonInstallerProperties>
+       <CommonInstallerProperties>Configuration=$(Configuration);BuildLabelDash=$(BuildLabelDash);BuildLabel=$(BuildLabel);BuildVersion=$(BuildVersion)</CommonInstallerProperties>
      </PropertyGroup>
      <MSBuild Projects="..\tools\Installer\Installer.wixproj" Properties="Flavor=NetFx;$(CommonInstallerProperties)" />
      <MSBuild Projects="..\tools\Installer\Installer.wixproj" Properties="Flavor=SL;$(CommonInstallerProperties)" />
@@ -592,7 +659,7 @@
   <Target Name="BeforeArchive">
     <PropertyGroup>
       <ArchiveSuffix></ArchiveSuffix>
-      <ArchiveSuffix Condition=" '$(BuildLabel)' != '' ">-$(BuildLabel)</ArchiveSuffix>
+      <ArchiveSuffix Condition=" '$(BuildLabelDash)' != '' ">$(BuildLabelDash)</ArchiveSuffix>
     </PropertyGroup>
     <MakeDir Directories="$(ArchiveOutputPath)" />
   </Target>
@@ -607,6 +674,22 @@
   <Target Name="SourceArchive" DependsOnTargets="BeforeArchive">
     <Exec Command='"$(Git)" archive --format=zip --worktree-attributes -9 head -o build/bin/Release/Packages/NLog2.source$(ArchiveSuffix).zip' WorkingDirectory=".." />
   </Target>
+
+  <UsingTask TaskName="TokenReplace" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+    <ParameterGroup>
+      <Path ParameterType="System.String" Required="true" />
+      <Token ParameterType="System.String" Required="true" />
+      <Replacement ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Fragment" Language="cs"><![CDATA[
+string content = File.ReadAllText(Path);
+content = content.Replace(Token, Replacement);
+File.WriteAllText(Path, content);
+
+]]></Code>
+    </Task>
+  </UsingTask>
 
   <ItemGroup>
     <FilesToCleanup Include="..\**\*.suo" />

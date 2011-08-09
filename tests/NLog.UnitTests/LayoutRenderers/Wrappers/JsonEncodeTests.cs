@@ -31,44 +31,30 @@
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
 
-namespace NLog.LayoutRenderers.Wrappers
+namespace NLog.UnitTests.LayoutRenderers.Wrappers
 {
-    using System.ComponentModel;
-    using System.Globalization;
-    using NLog.Config;
+    using NLog;
+    using NUnit.Framework;
 
-    /// <summary>
-    /// Trims the whitespace from the result of another layout renderer.
-    /// </summary>
-    [LayoutRenderer("trim-whitespace")]
-    [AmbientProperty("TrimWhiteSpace")]
-    [ThreadAgnostic]
-    public sealed class TrimWhiteSpaceLayoutRendererWrapper : WrapperLayoutRendererBase
+#if !NUNIT
+    using SetUp = Microsoft.VisualStudio.TestTools.UnitTesting.TestInitializeAttribute;
+    using TestFixture = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
+    using Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+    using TearDown =  Microsoft.VisualStudio.TestTools.UnitTesting.TestCleanupAttribute;
+#endif
+    using NLog.Layouts;
+
+    [TestFixture]
+    public class JsonEncodeTests : NLogTestBase
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TrimWhiteSpaceLayoutRendererWrapper" /> class.
-        /// </summary>
-        public TrimWhiteSpaceLayoutRendererWrapper()
+        [Test]
+        public void JsonEncodeTest1()
         {
-            this.TrimWhiteSpace = true;
-        }
+            MappedDiagnosticsContext.Clear();
+            MappedDiagnosticsContext.Set("foo", " abc\"\n\b\r\f\t/\u1234\u5432\\xyz ");
+            SimpleLayout l = "${json-encode:${mdc:foo}}";
 
-        /// <summary>
-        /// Gets or sets a value indicating whether lower case conversion should be applied.
-        /// </summary>
-        /// <value>A value of <c>true</c> if lower case conversion should be applied; otherwise, <c>false</c>.</value>
-        /// <docgen category='Transformation Options' order='10' />
-        [DefaultValue(true)]
-        public bool TrimWhiteSpace { get; set; }
-
-        /// <summary>
-        /// Post-processes the rendered message. 
-        /// </summary>
-        /// <param name="text">The text to be post-processed.</param>
-        /// <returns>Trimmed string.</returns>
-        protected override string Transform(string text)
-        {
-            return this.TrimWhiteSpace ? text.Trim() : text;
+            Assert.AreEqual(@" abc\""\n\b\r\f\t\/\u1234\u5432\\xyz ", l.Render(LogEventInfo.CreateNullEvent()));
         }
     }
 }

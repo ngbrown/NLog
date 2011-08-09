@@ -18,6 +18,8 @@
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <StyleCopTargetsFile>$(MSBuildExtensionsPath)\Microsoft\StyleCop\v4.4\Microsoft.StyleCop.Targets</StyleCopTargetsFile>
     <RunCodeAnalysis Condition=" '$(BuildingInsideVisualStudio)' != 'true' ">true</RunCodeAnalysis>
+    <StyleCopTreatErrorsAsWarnings>false</StyleCopTreatErrorsAsWarnings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -98,6 +100,7 @@
     <Compile Include="Config\AppDomainFixedOutputAttribute.cs" />
     <Compile Include="Config\ArrayParameterAttribute.cs" />
     <Compile Include="Config\ConfigSectionHandler.cs" />
+    <Compile Include="Config\ConfigurationItemCreator.cs" />
     <Compile Include="Config\ConfigurationItemFactory.cs" />
     <Compile Include="Config\DefaultParameterAttribute.cs" />
     <Compile Include="Config\Factory.cs" />
@@ -249,6 +252,7 @@
     <Compile Include="LayoutRenderers\WindowsIdentityLayoutRenderer.cs" />
     <Compile Include="LayoutRenderers\Wrappers\CachedLayoutRendererWrapper.cs" />
     <Compile Include="LayoutRenderers\Wrappers\FileSystemNormalizeLayoutRendererWrapper.cs" />
+    <Compile Include="LayoutRenderers\Wrappers\JsonEncodeLayoutRendererWrapper.cs" />
     <Compile Include="LayoutRenderers\Wrappers\LowercaseLayoutRendererWrapper.cs" />
     <Compile Include="LayoutRenderers\Wrappers\OnExceptionLayoutRendererWrapper.cs" />
     <Compile Include="LayoutRenderers\Wrappers\PaddingLayoutRendererWrapper.cs" />

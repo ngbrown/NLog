@@ -21,8 +21,7 @@
     <DeployDirSuffix>NLog</DeployDirSuffix>
     <NativePlatformName>Pocket PC 2003</NativePlatformName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-    <FormFactorID>
-    </FormFactorID>
+    <FormFactorID></FormFactorID>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -104,6 +103,7 @@
     <Compile Include="Config\AppDomainFixedOutputAttribute.cs" />
     <Compile Include="Config\ArrayParameterAttribute.cs" />
     <Compile Include="Config\ConfigSectionHandler.cs" />
+    <Compile Include="Config\ConfigurationItemCreator.cs" />
     <Compile Include="Config\ConfigurationItemFactory.cs" />
     <Compile Include="Config\DefaultParameterAttribute.cs" />
     <Compile Include="Config\Factory.cs" />
@@ -255,6 +255,7 @@
     <Compile Include="LayoutRenderers\WindowsIdentityLayoutRenderer.cs" />
     <Compile Include="LayoutRenderers\Wrappers\CachedLayoutRendererWrapper.cs" />
     <Compile Include="LayoutRenderers\Wrappers\FileSystemNormalizeLayoutRendererWrapper.cs" />
+    <Compile Include="LayoutRenderers\Wrappers\JsonEncodeLayoutRendererWrapper.cs" />
     <Compile Include="LayoutRenderers\Wrappers\LowercaseLayoutRendererWrapper.cs" />
     <Compile Include="LayoutRenderers\Wrappers\OnExceptionLayoutRendererWrapper.cs" />
     <Compile Include="LayoutRenderers\Wrappers\PaddingLayoutRendererWrapper.cs" />

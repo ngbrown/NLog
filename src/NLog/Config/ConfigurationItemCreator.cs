@@ -1,4 +1,4 @@
-// 
+﻿// 
 // Copyright (c) 2004-2011 Jaroslaw Kowalski <jaak@jkowalski.net>
 // 
 // All rights reserved.
@@ -31,44 +31,22 @@
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
 
-namespace NLog.LayoutRenderers.Wrappers
+namespace NLog.Config
 {
-    using System.ComponentModel;
-    using System.Globalization;
-    using NLog.Config;
+    using System;
+    using System.Collections.Generic;
+    using System.Reflection;
+    using NLog.Conditions;
+    using NLog.Filters;
+    using NLog.Internal;
+    using NLog.LayoutRenderers;
+    using NLog.Layouts;
+    using NLog.Targets;
 
     /// <summary>
-    /// Trims the whitespace from the result of another layout renderer.
+    /// Constructs a new instance the configuration item (target, layout, layout renderer, etc.) given its type.
     /// </summary>
-    [LayoutRenderer("trim-whitespace")]
-    [AmbientProperty("TrimWhiteSpace")]
-    [ThreadAgnostic]
-    public sealed class TrimWhiteSpaceLayoutRendererWrapper : WrapperLayoutRendererBase
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TrimWhiteSpaceLayoutRendererWrapper" /> class.
-        /// </summary>
-        public TrimWhiteSpaceLayoutRendererWrapper()
-        {
-            this.TrimWhiteSpace = true;
-        }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether lower case conversion should be applied.
-        /// </summary>
-        /// <value>A value of <c>true</c> if lower case conversion should be applied; otherwise, <c>false</c>.</value>
-        /// <docgen category='Transformation Options' order='10' />
-        [DefaultValue(true)]
-        public bool TrimWhiteSpace { get; set; }
-
-        /// <summary>
-        /// Post-processes the rendered message. 
-        /// </summary>
-        /// <param name="text">The text to be post-processed.</param>
-        /// <returns>Trimmed string.</returns>
-        protected override string Transform(string text)
-        {
-            return this.TrimWhiteSpace ? text.Trim() : text;
-        }
-    }
+    /// <param name="itemType">Type of the item.</param>
+    /// <returns>Created object of the specified type.</returns>
+    public delegate object ConfigurationItemCreator(Type itemType);
 }
