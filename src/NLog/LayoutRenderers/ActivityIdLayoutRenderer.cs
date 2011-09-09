@@ -39,7 +39,7 @@ namespace NLog.LayoutRenderers
     using System.Text;
 
     /// <summary>
-    /// Trace.CorrelationManager.ActivityId.
+    /// Renders Trace.CorrelationManager.ActivityId.
     /// </summary>
     [LayoutRenderer("activityid")]
     public class ActivityIdLayoutRenderer : LayoutRenderer

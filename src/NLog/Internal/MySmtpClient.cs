@@ -43,7 +43,7 @@ namespace NLog.Internal
     internal class MySmtpClient : SmtpClient, ISmtpClient
     {
         /// <summary>
-        /// Always set DeliveryMethod to Network
+        /// Initializes a new instance of the <see cref="MySmtpClient" /> class.  Always set DeliveryMethod to Network
         /// </summary>
         public MySmtpClient()
         {
