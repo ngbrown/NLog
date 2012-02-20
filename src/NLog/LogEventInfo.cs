@@ -359,7 +359,11 @@ namespace NLog
                 this.layoutCache = new Dictionary<Layout, string>();
             }
 
-            this.layoutCache[layout] = value;
+            lock (this.layoutCache)
+            {
+                this.layoutCache[layout] = value;
+            }
+
             return value;
         }
 
@@ -371,7 +375,10 @@ namespace NLog
                 return false;
             }
 
-            return this.layoutCache.TryGetValue(layout, out value);
+            lock (this.layoutCache)
+            {
+                return this.layoutCache.TryGetValue(layout, out value);
+            }
         }
 
         private static bool NeedToPreformatMessage(object[] parameters)
